@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi.responses import FileResponse, PlainTextResponse
 from pydantic import BaseModel
 from spakky.stereotypes.controller import Controller
+from spakky.stereotypes.usecase import UseCase
 from spakky_fastapi.routing import delete, get, head, options, patch, post, put
 
 
@@ -55,3 +56,8 @@ class DummyController:
     @options("", response_class=PlainTextResponse)
     async def options_dummy(self) -> str:
         return "Hello Options!"
+
+
+@UseCase()
+class DummyUseCase:
+    ...
