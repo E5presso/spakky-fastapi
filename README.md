@@ -1,6 +1,6 @@
 <h1 align="center">Spakky FastAPI</h1>
 <p align="center">
-    <em>Highly abstracted Framework core to use DDD & DI/IoC & AOP & Etc...</em>
+    <em>FastAPI Plugin for Spakky Framework</em>
 </p>
 <p align="center">
     <a href="https://github.com/E5presso/spakky-core/actions/workflows/test.yml">
@@ -19,4 +19,4 @@
 
 ---
 
-Spakky Core is a framework-agnostic Meta framework with Python 3.10+
+Spakky FastAPI is a implementation of *PostBeanProcessor* to use class-based FastAPI controller in Spakky Framework.
