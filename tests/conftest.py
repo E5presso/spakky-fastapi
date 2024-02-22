@@ -11,7 +11,7 @@ from tests import apps
 
 
 @pytest.fixture(name="logger", scope="function")
-def get_logger_fixture():
+def get_logger_fixture() -> Generator[Logger, Any, None]:
     logger: Logger = getLogger("simple_example")  # type: ignore
     logger.setLevel(logging.DEBUG)
     console = StreamHandler()
@@ -19,7 +19,7 @@ def get_logger_fixture():
     formatter = Formatter("[%(levelname)s] (%(asctime)s) : %(message)s")
     console.setFormatter(formatter)
     logger.addHandler(console)
-    return logger
+    yield logger
 
 
 @pytest.fixture(name="app", scope="function")
