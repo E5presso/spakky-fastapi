@@ -1,4 +1,4 @@
-from enum import StrEnum
+from enum import Enum
 from typing import Any, Callable, Sequence, TypeAlias
 from dataclasses import dataclass
 
@@ -13,7 +13,7 @@ SetIntStr: TypeAlias = set[int | str]
 DictIntStrAny: TypeAlias = dict[int | str, Any]
 
 
-class HTTPMethod(StrEnum):
+class HTTPMethod(str, Enum):
     GET = "GET"
     POST = "POST"
     PUT = "PUT"
