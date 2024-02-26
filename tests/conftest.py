@@ -26,6 +26,6 @@ def get_logger_fixture() -> Generator[Logger, Any, None]:
 def get_app_fixture(logger: Logger) -> Generator[FastAPI, Any, None]:
     app: FastAPI = FastAPI()
     context: ApplicationContext = ApplicationContext(apps)
-    context.register_post_processor(FastAPIBeanPostProcessor(app, logger))
+    context.register_bean_post_processor(FastAPIBeanPostProcessor(app, logger))
     context.start()
     yield app
