@@ -6,22 +6,22 @@ from dataclasses import asdict
 from fastapi import APIRouter, FastAPI
 from fastapi.exceptions import FastAPIError
 from fastapi.utils import create_response_field  # type: ignore
-from spakky.bean.autowired import autowired
 from spakky.bean.interfaces.bean_container import IBeanContainer
 from spakky.bean.interfaces.post_processor import IBeanPostProcessor
-from spakky.stereotypes.controller import Controller
+from spakky.stereotype.controller import Controller
 from spakky_fastapi.routing import Route
 
 
 class FastAPIBeanPostProcessor(IBeanPostProcessor):
+    __app: FastAPI
     __logger: Logger
 
-    @autowired
     def __init__(self, app: FastAPI, logger: Logger) -> None:
+        super().__init__()
         self.__app = app
         self.__logger = logger
 
-    def process_bean(self, container: IBeanContainer, bean: Any) -> Any:
+    def post_process_bean(self, container: IBeanContainer, bean: Any) -> Any:
         if Controller.contains(bean):
             controller = Controller.single(bean)
             router: APIRouter = APIRouter(prefix=controller.prefix)

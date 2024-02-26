@@ -6,7 +6,7 @@ from fastapi import Response, params
 from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
 from spakky.core.annotation import FunctionAnnotation
-from spakky.core.generics import FuncT
+from spakky.core.types import FuncT
 from starlette.routing import Route as StarletteRoute
 
 SetIntStr: TypeAlias = set[int | str]
