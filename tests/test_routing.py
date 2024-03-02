@@ -66,3 +66,11 @@ def test_file_without_response_class(app: FastAPI) -> None:
         response = client.get("/dummy/file-without-response-class/dummy.txt")
         assert response.status_code == HTTPStatus.OK
         assert response.text == "Hello File!"
+
+
+def test_websocket(app: FastAPI) -> None:
+    client = TestClient(app)
+    with client.websocket_connect("/dummy/ws") as socket:
+        socket.send_text("Hello World!")
+        received: str = socket.receive_text()
+        assert received == "Hello World!"

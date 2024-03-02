@@ -55,6 +55,13 @@ class Route(FunctionAnnotation):
     openapi_extra: dict[str, Any] | None = None
 
 
+@dataclass
+class WebSocketRoute(FunctionAnnotation):
+    path: str
+    name: str | None = None
+    dependencies: Sequence[params.Depends] | None = None
+
+
 def route(
     path: str,
     response_model: type[Any] | None = None,
@@ -480,4 +487,16 @@ def options(
         route_class_override=route_class_override,
         callbacks=callbacks,
         openapi_extra=openapi_extra,
+    )
+
+
+def websocket(
+    path: str,
+    name: str | None = None,
+    dependencies: Sequence[params.Depends] | None = None,
+) -> Callable[[FuncT], FuncT]:
+    return WebSocketRoute(
+        path=path,
+        name=name,
+        dependencies=dependencies,
     )

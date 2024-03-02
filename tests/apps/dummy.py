@@ -1,10 +1,20 @@
 from uuid import UUID
 
+from fastapi import WebSocket
 from fastapi.responses import FileResponse, PlainTextResponse
 from pydantic import BaseModel
 from spakky.stereotype.controller import Controller
 from spakky.stereotype.usecase import UseCase
-from spakky_fastapi.routing import delete, get, head, options, patch, post, put
+from spakky_fastapi.routing import (
+    delete,
+    get,
+    head,
+    options,
+    patch,
+    post,
+    put,
+    websocket,
+)
 
 
 class Dummy(BaseModel):
@@ -14,6 +24,9 @@ class Dummy(BaseModel):
 
 @Controller("/dummy")
 class DummyController:
+    async def just_function(self) -> str:
+        return "Just Function!"
+
     @get("", response_class=PlainTextResponse)
     async def get_dummy(self) -> str:
         return "Hello World!"
@@ -56,6 +69,13 @@ class DummyController:
     @options("", response_class=PlainTextResponse)
     async def options_dummy(self) -> str:
         return "Hello Options!"
+
+    @websocket("/ws")
+    async def websocket_dummy(self, socket: WebSocket) -> None:
+        await socket.accept()
+        message: str = await socket.receive_text()
+        await socket.send_text(message)
+        await socket.close()
 
 
 @UseCase()
