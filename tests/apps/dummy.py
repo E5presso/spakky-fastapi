@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import WebSocket
 from fastapi.responses import FileResponse, PlainTextResponse
 from pydantic import BaseModel
+from spakky.extensions.logging import AsyncLogging
 from spakky.stereotype.controller import Controller
 from spakky.stereotype.usecase import UseCase
 from spakky_fastapi.routing import (
@@ -27,10 +28,12 @@ class DummyController:
     async def just_function(self) -> str:
         return "Just Function!"
 
+    @AsyncLogging()
     @get("", response_class=PlainTextResponse)
     async def get_dummy(self) -> str:
         return "Hello World!"
 
+    @AsyncLogging()
     @get(
         "/file/{name}",
         response_class=FileResponse,
@@ -39,6 +42,7 @@ class DummyController:
     async def get_file(self, name: str) -> str:
         return f"tests/apps/{name}"
 
+    @AsyncLogging()
     @get(
         "/file-without-response-class/{name}",
         description="Get file by given name",
@@ -46,30 +50,37 @@ class DummyController:
     async def get_file_without_response_class(self, name: str) -> FileResponse:
         return FileResponse(f"tests/apps/{name}")
 
+    @AsyncLogging()
     @post("")
     async def post_dummy(self, dummy: Dummy) -> Dummy:
         return dummy
 
+    @AsyncLogging()
     @put("")
     async def put_dummy(self, dummy: Dummy) -> Dummy:
         return dummy
 
+    @AsyncLogging()
     @patch("")
     async def patch_dummy(self, dummy: Dummy) -> Dummy:
         return dummy
 
+    @AsyncLogging()
     @delete("/{id}")
     async def delete_dummy(self, id: UUID) -> UUID:
         return id
 
+    @AsyncLogging()
     @head("", response_class=PlainTextResponse)
     async def head_dummy(self) -> None:
         ...
 
+    @AsyncLogging()
     @options("", response_class=PlainTextResponse)
     async def options_dummy(self) -> str:
         return "Hello Options!"
 
+    @AsyncLogging()
     @websocket("/ws")
     async def websocket_dummy(self, socket: WebSocket) -> None:
         await socket.accept()
