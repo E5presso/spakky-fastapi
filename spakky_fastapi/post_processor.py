@@ -59,3 +59,4 @@ class FastAPIBeanPostProcessor(IBeanPostProcessor):
                     )
                 router.add_api_websocket_route(endpoint=method, **asdict(websocket_route))
         self.__app.include_router(router)
+        return bean
