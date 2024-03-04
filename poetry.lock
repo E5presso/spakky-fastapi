@@ -661,13 +661,13 @@ files = [
 
 [[package]]
 name = "spakky-core"
-version = "0.5.0"
+version = "0.6.0"
 description = "Highly abstracted Framework core to use DDD & DI/IoC & AOP & Etc..."
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "spakky_core-0.5.0-py3-none-any.whl", hash = "sha256:d31ca6e70d8d723b22498983578952503923ca42d911941649d6d8558d7619ca"},
-    {file = "spakky_core-0.5.0.tar.gz", hash = "sha256:7ce41d1aee63a81b56af9b23fb04cf4176daea56fe0d7f8f604d8f49c29d95c0"},
+    {file = "spakky_core-0.6.0-py3-none-any.whl", hash = "sha256:ff370ee6f217e7cd4ccb20febcec98354814e99c6f26dae3c0c448d67627acf7"},
+    {file = "spakky_core-0.6.0.tar.gz", hash = "sha256:abe51fb4a6bf361c4b9a363a5b1c68f9279a19a811d2387805a880068894a4e5"},
 ]
 
 [package.dependencies]
@@ -808,4 +808,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10"
-content-hash = "c64382742573f3160a14c5aac0d878f1fa5feea8585894eb920569a3c9d6e905"
+content-hash = "ca7d0e7d6941267a40ddaf285568cd0767d9451c622319641ab4044818d48301"
