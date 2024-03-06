@@ -7,7 +7,7 @@ from fastapi import APIRouter, FastAPI
 from fastapi.exceptions import FastAPIError
 from fastapi.utils import create_response_field  # type: ignore
 from spakky.bean.interfaces.bean_container import IBeanContainer
-from spakky.bean.interfaces.post_processor import IBeanPostProcessor
+from spakky.bean.interfaces.bean_processor import IBeanPostProcessor
 from spakky.stereotype.controller import Controller
 from spakky_fastapi.routing import Route, WebSocketRoute
 
