@@ -1,8 +1,11 @@
 from http import HTTPStatus
 from uuid import UUID, uuid4
+from datetime import timedelta
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from spakky.cryptography.jwt import JWT
+from spakky.cryptography.key import Key
 
 
 def test_get(app: FastAPI) -> None:
@@ -74,3 +77,74 @@ def test_websocket(app: FastAPI) -> None:
         socket.send_text("Hello World!")
         received: str = socket.receive_text()
         assert received == "Hello World!"
+
+
+def test_token_authentification(app: FastAPI) -> None:
+    with TestClient(app) as client:
+        response = client.get("/dummy/login?username=John")
+        assert response.status_code == HTTPStatus.OK
+        response = client.get(
+            url="/dummy/users/me?name=John&age=30",
+            headers={"Authorization": f"Bearer {response.json()}"},
+        )
+        assert response.status_code == HTTPStatus.OK
+        assert response.text == "John"
+
+
+def test_token_authentification_with_wrong_token(app: FastAPI) -> None:
+    with TestClient(app) as client:
+        response = client.get(
+            url="/dummy/users/me?name=John&age=30",
+            headers={"Authorization": f"Bearer undefined"},
+        )
+        assert response.status_code == HTTPStatus.UNAUTHORIZED
+
+
+def test_token_authentification_without_extra_parameters(app: FastAPI) -> None:
+    with TestClient(app) as client:
+        response = client.get("/dummy/login?username=John")
+        assert response.status_code == HTTPStatus.OK
+        response = client.get(
+            url="/dummy/users/profile",
+            headers={"Authorization": f"Bearer {response.json()}"},
+        )
+        assert response.status_code == HTTPStatus.OK
+        assert response.text == "John"
+
+
+def test_token_authentification_without_token(app: FastAPI) -> None:
+    with TestClient(app) as client:
+        response = client.get(url="/dummy/users/profile")
+        assert response.status_code == HTTPStatus.UNAUTHORIZED
+
+
+def test_token_authentification_with_expired_token(app: FastAPI, key: Key) -> None:
+    token = (
+        JWT()
+        .set_expiration(timedelta(days=-30))
+        .set_payload(username="John")
+        .sign(key)
+        .export()
+    )
+    with TestClient(app) as client:
+        response = client.get(
+            url="/dummy/users/profile",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert response.status_code == HTTPStatus.UNAUTHORIZED
+
+
+def test_token_authentification_with_invalid_signature(app: FastAPI) -> None:
+    token = (
+        JWT()
+        .set_expiration(timedelta(days=30))
+        .set_payload(username="John")
+        .sign(Key(size=32))
+        .export()
+    )
+    with TestClient(app) as client:
+        response = client.get(
+            url="/dummy/users/profile",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert response.status_code == HTTPStatus.UNAUTHORIZED
