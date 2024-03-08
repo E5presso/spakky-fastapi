@@ -1,11 +1,16 @@
 from uuid import UUID
+from datetime import timedelta
 
-from fastapi import WebSocket
+from fastapi import Depends, WebSocket
 from fastapi.responses import FileResponse, PlainTextResponse
 from pydantic import BaseModel
+from spakky.bean.autowired import autowired
+from spakky.cryptography.jwt import JWT
+from spakky.cryptography.key import Key
 from spakky.extensions.logging import AsyncLogging
 from spakky.stereotype.controller import Controller
 from spakky.stereotype.usecase import UseCase
+from spakky_fastapi.jwt_auth import JWTAuth
 from spakky_fastapi.routing import (
     delete,
     get,
@@ -25,6 +30,12 @@ class Dummy(BaseModel):
 
 @Controller("/dummy")
 class DummyController:
+    __key: Key
+
+    @autowired
+    def __init__(self, key: Key) -> None:
+        self.__key = key
+
     async def just_function(self) -> str:
         return "Just Function!"
 
@@ -87,6 +98,30 @@ class DummyController:
         message: str = await socket.receive_text()
         await socket.send_text(message)
         await socket.close()
+
+    @AsyncLogging()
+    @get("/login")
+    async def login(self, username: str) -> str:
+        return (
+            JWT()
+            .set_expiration(timedelta(days=30))
+            .set_payload(username=username)
+            .sign(self.__key)
+            .export()
+        )
+
+    @AsyncLogging()
+    @JWTAuth("login")
+    @get("/users/me", response_class=PlainTextResponse)
+    async def get_user(self, token: JWT, request: Dummy = Depends()) -> str:
+        print(request)
+        return token.payload["username"]
+
+    @AsyncLogging()
+    @JWTAuth("login")
+    @get("/users/profile", response_class=PlainTextResponse)
+    async def get_profile(self, token: JWT) -> str:
+        return token.payload["username"]
 
 
 @UseCase()
