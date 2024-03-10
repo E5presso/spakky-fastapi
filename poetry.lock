@@ -360,13 +360,13 @@ files = [
 
 [[package]]
 name = "packaging"
-version = "23.2"
+version = "24.0"
 description = "Core utilities for Python packages"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "packaging-23.2-py3-none-any.whl", hash = "sha256:8c491190033a9af7e1d931d0b5dacc2ef47509b34dd0de67ed209b5203fc88c7"},
-    {file = "packaging-23.2.tar.gz", hash = "sha256:048fb0e9405036518eaaf48a55953c750c11e1a1b68e0dd1a9d62ed0c092cfc5"},
+    {file = "packaging-24.0-py3-none-any.whl", hash = "sha256:2ddfb553fdf02fb784c234c7ba6ccc288296ceabec964ad2eae3777778130bc5"},
+    {file = "packaging-24.0.tar.gz", hash = "sha256:eb82c5e3e56209074766e6885bb04b8c38a0c015d0a30036ebe7ece34c9989e9"},
 ]
 
 [[package]]
@@ -661,13 +661,13 @@ files = [
 
 [[package]]
 name = "spakky-core"
-version = "0.7.8"
+version = "0.7.9"
 description = "Highly abstracted Framework core to use DDD & DI/IoC & AOP & Etc..."
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "spakky_core-0.7.8-py3-none-any.whl", hash = "sha256:34f890123797fc29629669448b93ef857da475a2d8a4126f7860967130166ffb"},
-    {file = "spakky_core-0.7.8.tar.gz", hash = "sha256:be5e3b20c081d78383039d1a4b0ddf8cd64c6915c8fde0f3dd4412afeb0e4e53"},
+    {file = "spakky_core-0.7.9-py3-none-any.whl", hash = "sha256:3c98484dfb95415b9c30af3b41348fd4be287f565f138f738d21d3aa187b6c63"},
+    {file = "spakky_core-0.7.9.tar.gz", hash = "sha256:6f5ba671e0446548b7f7fa8abd8f7910f5685ac308245ae6d9bd1a50a8129f60"},
 ]
 
 [package.dependencies]
@@ -808,4 +808,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10"
-content-hash = "509d21b7b89b1fc2195735795f53c2d1f7be4c59f42a05ecff9adb836df464f5"
+content-hash = "7e76a7697a359262a466a130b340eae2ab6f2632a5b421b1ce9fd58423ff78bf"
