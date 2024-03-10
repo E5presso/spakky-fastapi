@@ -25,7 +25,7 @@ class FastAPIBeanPostProcessor(IBeanPostProcessor):
         if not Controller.contains(bean):
             return bean
         controller = Controller.single(bean)
-        router: APIRouter = APIRouter(prefix=controller.prefix)
+        router: APIRouter = APIRouter(prefix=controller.prefix, tags=[controller.prefix])
         for name, method in getmembers(bean):
             route: Route | None = Route.single_or_none(method)
             websocket_route: WebSocketRoute | None = WebSocketRoute.single_or_none(method)
@@ -33,7 +33,7 @@ class FastAPIBeanPostProcessor(IBeanPostProcessor):
                 continue
             if route is not None:
                 self.__logger.info(
-                    f"[{type(self).__name__}] {route.methods} {controller.prefix}{route.path} -> {method.__qualname__}"
+                    f"[{type(self).__name__}] {route.methods!r} {controller.prefix}{route.path} -> {method.__qualname__}"
                 )
                 if route.name is None:
                     route.name = " ".join([x.capitalize() for x in name.split("_")])
