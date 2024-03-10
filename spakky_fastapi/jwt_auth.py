@@ -49,7 +49,7 @@ class JWTAuth(FunctionAnnotation):
         if obj.__defaults__ is not None:
             extra = obj.__defaults__
         else:
-            extra = tuple(Body() for x in parameters[1:] if x.name != "token")
+            extra = tuple([Body() for x in parameters[1:] if x.name != "token"])
         obj.__defaults__ = (Depends(self.authenticator),) + extra
         return super().__call__(obj)
 
