@@ -8,6 +8,7 @@ from fastapi.security import OAuth2PasswordBearer
 from spakky.aop.advice import Around
 from spakky.aop.advisor import IAsyncAdvisor
 from spakky.aop.aspect import AsyncAspect
+from spakky.aop.order import Order
 from spakky.bean.autowired import autowired
 from spakky.core.annotation import FunctionAnnotation
 from spakky.core.types import AsyncFunc, P
@@ -54,6 +55,7 @@ class JWTAuth(FunctionAnnotation):
         return super().__call__(obj)
 
 
+@Order(1)
 @AsyncAspect()
 class AsyncJWTAuthAdvisor(IAsyncAdvisor):
     __logger: Logger
