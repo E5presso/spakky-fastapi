@@ -8,7 +8,6 @@ from spakky.bean.autowired import autowired
 from spakky.cryptography.jwt import JWT
 from spakky.cryptography.key import Key
 from spakky.extensions.logging import AsyncLogging
-from spakky.stereotype.controller import Controller
 from spakky.stereotype.usecase import UseCase
 from spakky_fastapi.jwt_auth import JWTAuth
 from spakky_fastapi.routing import (
@@ -21,6 +20,7 @@ from spakky_fastapi.routing import (
     put,
     websocket,
 )
+from spakky_fastapi.stereotypes.api_controller import ApiController
 
 
 class Dummy(BaseModel):
@@ -28,7 +28,7 @@ class Dummy(BaseModel):
     age: int
 
 
-@Controller("/dummy")
+@ApiController("/dummy")
 class DummyController:
     __key: Key
 
