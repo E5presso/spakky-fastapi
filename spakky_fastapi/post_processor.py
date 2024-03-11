@@ -8,8 +8,8 @@ from fastapi.exceptions import FastAPIError
 from fastapi.utils import create_response_field  # type: ignore
 from spakky.bean.interfaces.bean_container import IBeanContainer
 from spakky.bean.interfaces.bean_processor import IBeanPostProcessor
-from spakky.stereotype.controller import Controller
 from spakky_fastapi.routing import Route, WebSocketRoute
+from spakky_fastapi.stereotypes.api_controller import ApiController
 
 
 class FastAPIBeanPostProcessor(IBeanPostProcessor):
@@ -22,10 +22,10 @@ class FastAPIBeanPostProcessor(IBeanPostProcessor):
         self.__logger = logger
 
     def post_process_bean(self, container: IBeanContainer, bean: Any) -> Any:
-        if not Controller.contains(bean):
+        if not ApiController.contains(bean):
             return bean
-        controller = Controller.single(bean)
-        router: APIRouter = APIRouter(prefix=controller.prefix, tags=[controller.prefix])
+        controller = ApiController.single(bean)
+        router: APIRouter = APIRouter(prefix=controller.prefix, tags=controller.tags)
         for name, method in getmembers(bean):
             route: Route | None = Route.single_or_none(method)
             websocket_route: WebSocketRoute | None = WebSocketRoute.single_or_none(method)
