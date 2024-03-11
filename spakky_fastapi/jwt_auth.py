@@ -3,7 +3,7 @@ from inspect import signature
 from logging import Logger
 from dataclasses import InitVar, field, dataclass
 
-from fastapi import Body, Depends
+from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 from spakky.aop.advice import Around
 from spakky.aop.advisor import IAsyncAdvisor
@@ -56,7 +56,7 @@ class JWTAuth(FunctionAnnotation):
         if obj.__defaults__ is not None:
             extra = obj.__defaults__
         else:
-            extra = tuple([Body() for x in parameters[1:] if x.name != "token"])
+            extra = tuple(Depends() for x in parameters[1:] if x.name != "token")
         obj.__defaults__ = (Depends(self.authenticator),) + extra
         return super().__call__(obj)
 
@@ -80,11 +80,10 @@ class AsyncJWTAuthAdvisor(IAsyncAdvisor):
             jwt: JWT = JWT(token=token)
         except (InvalidJWTFormatError, JWTDecodingError) as e:
             raise Unauthorized(AuthenticationFailedError()) from e
-        else:
-            if jwt.is_expired:
-                raise Unauthorized(AuthenticationFailedError())
-            if jwt.verify(self.__key) is False:
-                raise Unauthorized(AuthenticationFailedError())
-            self.__logger.info(f"[{type(self).__name__}] {jwt.payload!r}")
-            kwargs["token"] = jwt
-            return await joinpoint(*args, **kwargs)
+        if jwt.is_expired:
+            raise Unauthorized(AuthenticationFailedError())
+        if jwt.verify(self.__key) is False:
+            raise Unauthorized(AuthenticationFailedError())
+        self.__logger.info(f"[{type(self).__name__}] {jwt.payload!r}")
+        kwargs["token"] = jwt
+        return await joinpoint(*args, **kwargs)
