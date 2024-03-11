@@ -3,11 +3,12 @@ from inspect import signature
 from logging import Logger
 from dataclasses import InitVar, field, dataclass
 
-from fastapi import Body, Depends, Response, status
+from fastapi import Body, Depends
 from fastapi.security import OAuth2PasswordBearer
 from spakky.aop.advice import Around
 from spakky.aop.advisor import IAsyncAdvisor
 from spakky.aop.aspect import AsyncAspect
+from spakky.aop.error import SpakkyAOPError
 from spakky.aop.order import Order
 from spakky.bean.autowired import autowired
 from spakky.core.annotation import FunctionAnnotation
@@ -15,8 +16,13 @@ from spakky.core.types import AsyncFunc, P
 from spakky.cryptography.error import InvalidJWTFormatError, JWTDecodingError
 from spakky.cryptography.jwt import JWT
 from spakky.cryptography.key import Key
+from spakky_fastapi.error import Unauthorized
 
 R_co = TypeVar("R_co", covariant=True)
+
+
+class AuthenticationFailedError(SpakkyAOPError):
+    message = "사용자 인증에 실패했습니다."
 
 
 @runtime_checkable
@@ -72,13 +78,13 @@ class AsyncJWTAuthAdvisor(IAsyncAdvisor):
         token: str = kwargs["token"]
         try:
             jwt: JWT = JWT(token=token)
-        except (InvalidJWTFormatError, JWTDecodingError):
-            return Response(content=None, status_code=status.HTTP_401_UNAUTHORIZED)
+        except (InvalidJWTFormatError, JWTDecodingError) as e:
+            raise Unauthorized(AuthenticationFailedError()) from e
         else:
             if jwt.is_expired:
-                return Response(content=None, status_code=status.HTTP_401_UNAUTHORIZED)
+                raise Unauthorized(AuthenticationFailedError())
             if jwt.verify(self.__key) is False:
-                return Response(content=None, status_code=status.HTTP_401_UNAUTHORIZED)
+                raise Unauthorized(AuthenticationFailedError())
             self.__logger.info(f"[{type(self).__name__}] {jwt.payload!r}")
             kwargs["token"] = jwt
             return await joinpoint(*args, **kwargs)

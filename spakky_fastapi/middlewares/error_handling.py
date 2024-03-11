@@ -4,7 +4,7 @@ from dataclasses import InitVar
 from fastapi import Request
 from fastapi.responses import ORJSONResponse
 from pydantic import BaseModel, Field
-from spakky_fastapi.error import SpakkyFastAPIError
+from spakky_fastapi.error import InternalServerError, SpakkyFastAPIError
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 
@@ -29,4 +29,11 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
             return ORJSONResponse(
                 content=ErrorResponse(error=e).model_dump(),
                 status_code=e.status_code,
+            )
+        # pylint: disable=broad-exception-caught
+        except Exception as e:
+            error = InternalServerError(e)
+            return ORJSONResponse(
+                content=error,
+                status_code=error.status_code,
             )
