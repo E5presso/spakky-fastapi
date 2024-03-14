@@ -31,6 +31,7 @@ IAuthenticatedFunction: TypeAlias = Callable[Concatenate[Any, JWT, P], Awaitable
 class JWTAuth(FunctionAnnotation):
     token_url: InitVar[str]
     authenticator: OAuth2PasswordBearer = field(init=False)
+    token_keywords: list[str] = field(init=False, default_factory=list)
 
     def __post_init__(self, token_url: str) -> None:
         self.authenticator = OAuth2PasswordBearer(tokenUrl=token_url)
@@ -38,10 +39,10 @@ class JWTAuth(FunctionAnnotation):
     def __call__(
         self, obj: IAuthenticatedFunction[P, R_co]
     ) -> IAuthenticatedFunction[P, R_co]:
-        obj.__annotations__ = {
-            k: Annotated[JWT, Depends(self.authenticator)] if v == JWT else v
-            for k, v in obj.__annotations__.items()
-        }
+        for key, value in obj.__annotations__.items():
+            if value == JWT:
+                obj.__annotations__[key] = Annotated[JWT, Depends(self.authenticator)]
+                self.token_keywords.append(key)
         return super().__call__(obj)
 
 
@@ -59,15 +60,17 @@ class AsyncJWTAuthAdvisor(IAsyncAdvisor):
 
     @Around(JWTAuth.contains)
     async def around_async(self, joinpoint: AsyncFunc, *args: Any, **kwargs: Any) -> Any:
-        token: str = kwargs["token"]
-        try:
-            jwt: JWT = JWT(token=token)
-        except (InvalidJWTFormatError, JWTDecodingError) as e:
-            raise Unauthorized(AuthenticationFailedError()) from e
-        if jwt.is_expired:
-            raise Unauthorized(AuthenticationFailedError())
-        if jwt.verify(self.__key) is False:
-            raise Unauthorized(AuthenticationFailedError())
-        self.__logger.info(f"[{type(self).__name__}] {jwt.payload!r}")
-        kwargs["token"] = jwt
+        annotation: JWTAuth = JWTAuth.single(joinpoint)
+        for keyword in annotation.token_keywords:
+            token: str = kwargs[keyword]
+            try:
+                jwt: JWT = JWT(token=token)
+            except (InvalidJWTFormatError, JWTDecodingError) as e:
+                raise Unauthorized(AuthenticationFailedError()) from e
+            if jwt.is_expired:
+                raise Unauthorized(AuthenticationFailedError())
+            if jwt.verify(self.__key) is False:
+                raise Unauthorized(AuthenticationFailedError())
+            self.__logger.info(f"[{type(self).__name__}] {jwt.payload!r}")
+            kwargs[keyword] = jwt
         return await joinpoint(*args, **kwargs)
