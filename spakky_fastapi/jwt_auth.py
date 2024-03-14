@@ -1,5 +1,4 @@
-from typing import Any, TypeVar, Protocol, Awaitable, runtime_checkable
-from inspect import signature
+from typing import Any, TypeVar, Callable, Annotated, Awaitable, TypeAlias, Concatenate
 from logging import Logger
 from dataclasses import InitVar, field, dataclass
 
@@ -25,20 +24,7 @@ class AuthenticationFailedError(SpakkyAOPError):
     message = "사용자 인증에 실패했습니다."
 
 
-@runtime_checkable
-class IAuthenticatedFunction(Protocol[P, R_co]):
-    __defaults__: tuple[Any, ...] | None
-    __kwdefaults__: dict[str, Any] | None
-
-    # pylint: disable=no-self-argument
-    def __call__(
-        self_,  # type: ignore
-        self: Any,
-        token: JWT,
-        *args: P.args,
-        **kwargs: P.kwargs,
-    ) -> Awaitable[R_co]:
-        raise NotImplementedError
+IAuthenticatedFunction: TypeAlias = Callable[Concatenate[Any, JWT, P], Awaitable[R_co]]
 
 
 @dataclass
@@ -52,12 +38,10 @@ class JWTAuth(FunctionAnnotation):
     def __call__(
         self, obj: IAuthenticatedFunction[P, R_co]
     ) -> IAuthenticatedFunction[P, R_co]:
-        parameters = list(signature(obj).parameters.values())
-        if obj.__defaults__ is not None:
-            extra = obj.__defaults__
-        else:
-            extra = tuple(Depends() for x in parameters[1:] if x.name != "token")
-        obj.__defaults__ = (Depends(self.authenticator),) + extra
+        obj.__annotations__ = {
+            k: Annotated[JWT, Depends(self.authenticator)] if v == JWT else v
+            for k, v in obj.__annotations__.items()
+        }
         return super().__call__(obj)
 
 

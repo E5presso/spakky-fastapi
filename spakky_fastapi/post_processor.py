@@ -26,7 +26,7 @@ class FastAPIBeanPostProcessor(IBeanPostProcessor):
             return bean
         controller = ApiController.single(bean)
         router: APIRouter = APIRouter(prefix=controller.prefix, tags=controller.tags)
-        for name, method in getmembers(bean):
+        for name, method in getmembers(bean, callable):
             route: Route | None = Route.single_or_none(method)
             websocket_route: WebSocketRoute | None = WebSocketRoute.single_or_none(method)
             if route is None and websocket_route is None:
