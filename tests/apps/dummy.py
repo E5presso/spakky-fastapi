@@ -9,6 +9,7 @@ from spakky.cryptography.jwt import JWT
 from spakky.cryptography.key import Key
 from spakky.extensions.logging import AsyncLogging
 from spakky.stereotype.usecase import UseCase
+
 from spakky_fastapi.jwt_auth import JWTAuth
 from spakky_fastapi.stereotypes.api_controller import (
     ApiController,

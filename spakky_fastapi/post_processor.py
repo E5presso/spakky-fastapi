@@ -8,6 +8,7 @@ from fastapi.exceptions import FastAPIError
 from fastapi.utils import create_response_field  # type: ignore
 from spakky.bean.interfaces.bean_container import IBeanContainer
 from spakky.bean.interfaces.bean_processor import IBeanPostProcessor
+
 from spakky_fastapi.stereotypes.api_controller import (
     ApiController,
     Route,
