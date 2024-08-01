@@ -22,16 +22,22 @@ def get_key_fixture() -> Generator[Key, Any, None]:
     yield key
 
 
-@pytest.fixture(name="app", scope="function")
-def get_app_fixture(key: Key) -> Generator[FastAPI, Any, None]:
+@pytest.fixture(name="logger", scope="session")
+def get_logger_fixture() -> Generator[Logger, Any, None]:
     logger: Logger = getLogger("debug")
     logger.setLevel(logging.DEBUG)
     console = StreamHandler()
     console.setLevel(level=logging.DEBUG)
-    formatter = Formatter("[%(levelname)s] (%(asctime)s) : %(message)s")
-    console.setFormatter(formatter)
+    console.setFormatter(Formatter("[%(levelname)s] (%(asctime)s) : %(message)s"))
     logger.addHandler(console)
 
+    yield logger
+
+    logger.removeHandler(console)
+
+
+@pytest.fixture(name="app", scope="function")
+def get_app_fixture(key: Key, logger: Logger) -> Generator[FastAPI, Any, None]:
     @BeanFactory()
     def get_logger() -> Logger:
         return logger
@@ -40,8 +46,8 @@ def get_app_fixture(key: Key) -> Generator[FastAPI, Any, None]:
     def get_key() -> Key:
         return key
 
-    app: FastAPI = FastAPI()
-    app.add_middleware(ErrorHandlingMiddleware)
+    app: FastAPI = FastAPI(debug=True)
+    app.add_middleware(ErrorHandlingMiddleware, debug=True)
     context: ApplicationContext = ApplicationContext(apps)
     context.register_bean_factory(get_logger)
     context.register_bean_factory(get_key)
@@ -51,5 +57,3 @@ def get_app_fixture(key: Key) -> Generator[FastAPI, Any, None]:
     context.register_bean_post_processor(FastAPIBeanPostProcessor(app, logger))
     context.start()
     yield app
-
-    logger.removeHandler(console)
