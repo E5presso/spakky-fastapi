@@ -10,7 +10,8 @@ from spakky.cryptography.key import Key
 from spakky.extensions.logging import AsyncLogging
 from spakky.stereotype.usecase import UseCase
 from spakky_fastapi.jwt_auth import JWTAuth
-from spakky_fastapi.routing import (
+from spakky_fastapi.stereotypes.api_controller import (
+    ApiController,
     delete,
     get,
     head,
@@ -20,7 +21,6 @@ from spakky_fastapi.routing import (
     put,
     websocket,
 )
-from spakky_fastapi.stereotypes.api_controller import ApiController
 
 
 class Dummy(BaseModel):
@@ -122,6 +122,10 @@ class DummyController:
     @get("/users/profile", response_class=PlainTextResponse)
     async def get_profile(self, token: JWT) -> str:
         return token.payload["username"]
+
+    @get("/error", response_class=PlainTextResponse)
+    async def raise_error(self) -> str:
+        raise RuntimeError("Error!")
 
 
 @UseCase()

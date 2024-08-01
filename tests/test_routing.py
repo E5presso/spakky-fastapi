@@ -148,3 +148,10 @@ def test_token_authentification_with_invalid_signature(app: FastAPI) -> None:
             headers={"Authorization": f"Bearer {token}"},
         )
         assert response.status_code == HTTPStatus.UNAUTHORIZED
+
+
+def test_when_unexpected_error_ocurred(app: FastAPI) -> None:
+    with TestClient(app) as client:
+        response = client.get(url="/dummy/error")
+        assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
+        assert response.json()["message"] == "알 수 없는 오류가 발생했습니다."
