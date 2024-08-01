@@ -8,8 +8,11 @@ from fastapi.exceptions import FastAPIError
 from fastapi.utils import create_response_field  # type: ignore
 from spakky.bean.interfaces.bean_container import IBeanContainer
 from spakky.bean.interfaces.bean_processor import IBeanPostProcessor
-from spakky_fastapi.routing import Route, WebSocketRoute
-from spakky_fastapi.stereotypes.api_controller import ApiController
+from spakky_fastapi.stereotypes.api_controller import (
+    ApiController,
+    Route,
+    WebSocketRoute,
+)
 
 
 class FastAPIBeanPostProcessor(IBeanPostProcessor):
@@ -32,6 +35,7 @@ class FastAPIBeanPostProcessor(IBeanPostProcessor):
             if route is None and websocket_route is None:
                 continue
             if route is not None:
+                # pylint: disable=line-too-long
                 self.__logger.info(
                     f"[{type(self).__name__}] {route.methods!r} {controller.prefix}{route.path} -> {method.__qualname__}"
                 )
@@ -50,6 +54,7 @@ class FastAPIBeanPostProcessor(IBeanPostProcessor):
                             route.response_model = return_annotation
                 router.add_api_route(endpoint=method, **asdict(route))
             if websocket_route is not None:
+                # pylint: disable=line-too-long
                 self.__logger.info(
                     f"[{type(self).__name__}] [WebSocket] {controller.prefix}{websocket_route.path} -> {method.__qualname__}"
                 )
