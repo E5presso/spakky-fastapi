@@ -15,6 +15,7 @@ from spakky.core.types import AsyncFunc, P
 from spakky.cryptography.error import InvalidJWTFormatError, JWTDecodingError
 from spakky.cryptography.jwt import JWT
 from spakky.cryptography.key import Key
+
 from spakky_fastapi.error import Unauthorized
 
 R_co = TypeVar("R_co", covariant=True)

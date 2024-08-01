@@ -9,10 +9,10 @@ from spakky.bean.application_context import ApplicationContext
 from spakky.bean.bean import BeanFactory
 from spakky.cryptography.key import Key
 from spakky.extensions.logging import AsyncLoggingAdvisor
+
 from spakky_fastapi.jwt_auth import AsyncJWTAuthAdvisor
 from spakky_fastapi.middlewares.error_handling import ErrorHandlingMiddleware
 from spakky_fastapi.post_processor import FastAPIBeanPostProcessor
-
 from tests import apps
 
 

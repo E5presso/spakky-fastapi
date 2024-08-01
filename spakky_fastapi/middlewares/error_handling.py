@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from starlette.middleware.base import BaseHTTPMiddleware, DispatchFunction
 from starlette.responses import Response
 from starlette.types import ASGIApp
+
 from spakky_fastapi.error import InternalServerError, SpakkyFastAPIError
 
 Next: TypeAlias = Callable[[Request], Awaitable[Response]]
