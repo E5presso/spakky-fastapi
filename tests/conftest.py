@@ -4,15 +4,15 @@ from logging import Logger, Formatter, StreamHandler, getLogger
 
 import pytest
 from fastapi import FastAPI
-from spakky.aop.post_processor import AspectBeanPostProcessor
-from spakky.bean.application_context import ApplicationContext
-from spakky.bean.bean import BeanFactory
+from spakky.application.application_context import ApplicationContext
+from spakky.bean.bean import Bean
 from spakky.cryptography.key import Key
-from spakky.extensions.logging import AsyncLoggingAdvisor
+from spakky.plugins.aspect import AspectPlugin
+from spakky.plugins.logging import LoggingPlugin
 
-from spakky_fastapi.jwt_auth import AsyncJWTAuthAdvisor
 from spakky_fastapi.middlewares.error_handling import ErrorHandlingMiddleware
-from spakky_fastapi.post_processor import FastAPIBeanPostProcessor
+from spakky_fastapi.plugins.fast_api import FastAPIPlugin
+from spakky_fastapi.plugins.jwt_auth import JWTAuthPlugin
 from tests import apps
 
 
@@ -38,22 +38,25 @@ def get_logger_fixture() -> Generator[Logger, Any, None]:
 
 @pytest.fixture(name="app", scope="function")
 def get_app_fixture(key: Key, logger: Logger) -> Generator[FastAPI, Any, None]:
-    @BeanFactory()
+    @Bean(bean_name="logger")
     def get_logger() -> Logger:
         return logger
 
-    @BeanFactory()
+    @Bean(bean_name="key")
     def get_key() -> Key:
         return key
 
     app: FastAPI = FastAPI(debug=True)
     app.add_middleware(ErrorHandlingMiddleware, debug=True)
-    context: ApplicationContext = ApplicationContext(apps)
+    context: ApplicationContext = ApplicationContext(package=apps)
+
+    context.register_plugin(AspectPlugin(logger))
+    context.register_plugin(FastAPIPlugin(app, logger))
+    context.register_plugin(LoggingPlugin())
+    context.register_plugin(JWTAuthPlugin())
+
     context.register_bean_factory(get_logger)
     context.register_bean_factory(get_key)
-    context.register_bean(AsyncLoggingAdvisor)
-    context.register_bean(AsyncJWTAuthAdvisor)
-    context.register_bean_post_processor(AspectBeanPostProcessor(logger))
-    context.register_bean_post_processor(FastAPIBeanPostProcessor(app, logger))
+
     context.start()
     yield app

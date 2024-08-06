@@ -4,13 +4,12 @@ from datetime import timedelta
 from fastapi import Depends, WebSocket
 from fastapi.responses import FileResponse, PlainTextResponse
 from pydantic import BaseModel
-from spakky.bean.autowired import autowired
 from spakky.cryptography.jwt import JWT
 from spakky.cryptography.key import Key
 from spakky.extensions.logging import AsyncLogging
 from spakky.stereotype.usecase import UseCase
 
-from spakky_fastapi.jwt_auth import JWTAuth
+from spakky_fastapi.aspects.jwt_auth import JWTAuth
 from spakky_fastapi.stereotypes.api_controller import (
     ApiController,
     delete,
@@ -33,7 +32,6 @@ class Dummy(BaseModel):
 class DummyController:
     __key: Key
 
-    @autowired
     def __init__(self, key: Key) -> None:
         self.__key = key
 
@@ -120,8 +118,14 @@ class DummyController:
 
     @AsyncLogging()
     @JWTAuth("login")
+    @get("/users/profile/async", response_class=PlainTextResponse)
+    async def get_profile_async(self, token: JWT) -> str:
+        return token.payload["username"]
+
+    @AsyncLogging()
+    @JWTAuth("login")
     @get("/users/profile", response_class=PlainTextResponse)
-    async def get_profile(self, token: JWT) -> str:
+    def get_profile(self, token: JWT) -> str:
         return token.payload["username"]
 
     @get("/error", response_class=PlainTextResponse)

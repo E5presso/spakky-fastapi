@@ -1,17 +1,17 @@
 from typing import Any, TypeVar, Callable, Annotated, Awaitable, TypeAlias, Concatenate
+from inspect import iscoroutinefunction
 from logging import Logger
 from dataclasses import InitVar, field, dataclass
 
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 from spakky.aop.advice import Around
-from spakky.aop.advisor import IAsyncAdvisor
-from spakky.aop.aspect import AsyncAspect
+from spakky.aop.advisor import IAdvisor, IAsyncAdvisor
+from spakky.aop.aspect import Aspect, AsyncAspect
 from spakky.aop.error import SpakkyAOPError
 from spakky.aop.order import Order
-from spakky.bean.autowired import autowired
 from spakky.core.annotation import FunctionAnnotation
-from spakky.core.types import AsyncFunc, P
+from spakky.core.types import AsyncFunc, Func, P
 from spakky.cryptography.error import InvalidJWTFormatError, JWTDecodingError
 from spakky.cryptography.jwt import JWT
 from spakky.cryptography.key import Key
@@ -25,7 +25,10 @@ class AuthenticationFailedError(SpakkyAOPError):
     message = "사용자 인증에 실패했습니다."
 
 
-IAuthenticatedFunction: TypeAlias = Callable[Concatenate[Any, JWT, P], Awaitable[R_co]]
+IAuthenticatedFunction: TypeAlias = (
+    Callable[Concatenate[Any, JWT, P], R_co]
+    | Callable[Concatenate[Any, JWT, P], Awaitable[R_co]]
+)
 
 
 @dataclass
@@ -48,18 +51,46 @@ class JWTAuth(FunctionAnnotation):
 
 
 @Order(1)
-@AsyncAspect()
-class AsyncJWTAuthAdvisor(IAsyncAdvisor):
+@Aspect()
+class JWTAuthAdvisor(IAdvisor):
     __logger: Logger
     __key: Key
 
-    @autowired
     def __init__(self, logger: Logger, key: Key) -> None:
         super().__init__()
         self.__logger = logger
         self.__key = key
 
-    @Around(JWTAuth.contains)
+    @Around(lambda x: JWTAuth.contains(x) and not iscoroutinefunction(x))
+    def around(self, joinpoint: Func, *args: Any, **kwargs: Any) -> Any:
+        annotation: JWTAuth = JWTAuth.single(joinpoint)
+        for keyword in annotation.token_keywords:
+            token: str = kwargs[keyword]
+            try:
+                jwt: JWT = JWT(token=token)
+            except (InvalidJWTFormatError, JWTDecodingError) as e:
+                raise Unauthorized(AuthenticationFailedError()) from e
+            if jwt.is_expired:
+                raise Unauthorized(AuthenticationFailedError())
+            if jwt.verify(self.__key) is False:
+                raise Unauthorized(AuthenticationFailedError())
+            self.__logger.info(f"[{type(self).__name__}] {jwt.payload!r}")
+            kwargs[keyword] = jwt
+        return joinpoint(*args, **kwargs)
+
+
+@Order(1)
+@AsyncAspect()
+class AsyncJWTAuthAdvisor(IAsyncAdvisor):
+    __logger: Logger
+    __key: Key
+
+    def __init__(self, logger: Logger, key: Key) -> None:
+        super().__init__()
+        self.__logger = logger
+        self.__key = key
+
+    @Around(lambda x: JWTAuth.contains(x) and iscoroutinefunction(x))
     async def around_async(self, joinpoint: AsyncFunc, *args: Any, **kwargs: Any) -> Any:
         annotation: JWTAuth = JWTAuth.single(joinpoint)
         for keyword in annotation.token_keywords:
