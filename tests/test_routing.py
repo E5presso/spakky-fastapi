@@ -10,7 +10,7 @@ from spakky.cryptography.key import Key
 
 def test_get(app: FastAPI) -> None:
     with TestClient(app) as client:
-        response = client.get(f"/dummy")
+        response = client.get("/dummy")
         assert response.status_code == HTTPStatus.OK
         assert response.text == "Hello World!"
 
@@ -95,7 +95,7 @@ def test_token_authentification_with_wrong_token(app: FastAPI) -> None:
     with TestClient(app) as client:
         response = client.get(
             url="/dummy/users/me?name=John&age=30",
-            headers={"Authorization": f"Bearer undefined"},
+            headers={"Authorization": "Bearer undefined"},
         )
         assert response.status_code == HTTPStatus.UNAUTHORIZED
 
@@ -145,6 +145,65 @@ def test_token_authentification_with_invalid_signature(app: FastAPI) -> None:
     with TestClient(app) as client:
         response = client.get(
             url="/dummy/users/profile",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert response.status_code == HTTPStatus.UNAUTHORIZED
+
+
+def test_async_token_authentification_with_wrong_token(app: FastAPI) -> None:
+    with TestClient(app) as client:
+        response = client.get(
+            url="/dummy/users/profile",
+            headers={"Authorization": "Bearer undefined"},
+        )
+        assert response.status_code == HTTPStatus.UNAUTHORIZED
+
+
+def test_async_token_authentification_without_extra_parameters(app: FastAPI) -> None:
+    with TestClient(app) as client:
+        response = client.get("/dummy/login?username=John")
+        assert response.status_code == HTTPStatus.OK
+        response = client.get(
+            url="/dummy/users/profile/async",
+            headers={"Authorization": f"Bearer {response.json()}"},
+        )
+        assert response.status_code == HTTPStatus.OK
+        assert response.text == "John"
+
+
+def test_async_token_authentification_without_token(app: FastAPI) -> None:
+    with TestClient(app) as client:
+        response = client.get(url="/dummy/users/profile/async")
+        assert response.status_code == HTTPStatus.UNAUTHORIZED
+
+
+def test_async_token_authentification_with_expired_token(app: FastAPI, key: Key) -> None:
+    token = (
+        JWT()
+        .set_expiration(timedelta(days=-30))
+        .set_payload(username="John")
+        .sign(key)
+        .export()
+    )
+    with TestClient(app) as client:
+        response = client.get(
+            url="/dummy/users/profile/async",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert response.status_code == HTTPStatus.UNAUTHORIZED
+
+
+def test_async_token_authentification_with_invalid_signature(app: FastAPI) -> None:
+    token = (
+        JWT()
+        .set_expiration(timedelta(days=30))
+        .set_payload(username="John")
+        .sign(Key(size=32))
+        .export()
+    )
+    with TestClient(app) as client:
+        response = client.get(
+            url="/dummy/users/profile/async",
             headers={"Authorization": f"Bearer {token}"},
         )
         assert response.status_code == HTTPStatus.UNAUTHORIZED
