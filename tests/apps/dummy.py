@@ -6,7 +6,7 @@ from fastapi.responses import FileResponse, PlainTextResponse
 from pydantic import BaseModel
 from spakky.cryptography.jwt import JWT
 from spakky.cryptography.key import Key
-from spakky.extensions.logging import AsyncLogging
+from spakky.extensions.logging import Logging
 from spakky.stereotype.usecase import UseCase
 
 from spakky_fastapi.aspects.jwt_auth import JWTAuth
@@ -38,12 +38,12 @@ class DummyController:
     async def just_function(self) -> str:
         return "Just Function!"
 
-    @AsyncLogging()
+    @Logging()
     @get("", response_class=PlainTextResponse)
     async def get_dummy(self) -> str:
         return "Hello World!"
 
-    @AsyncLogging()
+    @Logging()
     @get(
         "/file/{name}",
         response_class=FileResponse,
@@ -52,7 +52,7 @@ class DummyController:
     async def get_file(self, name: str) -> str:
         return f"tests/apps/{name}"
 
-    @AsyncLogging()
+    @Logging()
     @get(
         "/file-without-response-class/{name}",
         description="Get file by given name",
@@ -60,37 +60,37 @@ class DummyController:
     async def get_file_without_response_class(self, name: str) -> FileResponse:
         return FileResponse(f"tests/apps/{name}")
 
-    @AsyncLogging()
+    @Logging()
     @post("")
     async def post_dummy(self, dummy: Dummy) -> Dummy:
         return dummy
 
-    @AsyncLogging()
+    @Logging()
     @put("")
     async def put_dummy(self, dummy: Dummy) -> Dummy:
         return dummy
 
-    @AsyncLogging()
+    @Logging()
     @patch("")
     async def patch_dummy(self, dummy: Dummy) -> Dummy:
         return dummy
 
-    @AsyncLogging()
+    @Logging()
     @delete("/{id}")
     async def delete_dummy(self, id: UUID) -> UUID:
         return id
 
-    @AsyncLogging()
+    @Logging()
     @head("", response_class=PlainTextResponse)
     async def head_dummy(self) -> None:
         ...
 
-    @AsyncLogging()
+    @Logging()
     @options("", response_class=PlainTextResponse)
     async def options_dummy(self) -> str:
         return "Hello Options!"
 
-    @AsyncLogging()
+    @Logging()
     @websocket("/ws")
     async def websocket_dummy(self, socket: WebSocket) -> None:
         await socket.accept()
@@ -98,7 +98,7 @@ class DummyController:
         await socket.send_text(message)
         await socket.close()
 
-    @AsyncLogging()
+    @Logging()
     @get("/login")
     async def login(self, username: str) -> str:
         return (
@@ -109,20 +109,20 @@ class DummyController:
             .export()
         )
 
-    @AsyncLogging()
+    @Logging()
     @JWTAuth("login")
     @get("/users/me", response_class=PlainTextResponse)
     async def get_user(self, token: JWT, request: Dummy = Depends()) -> str:
         print(request)
         return token.payload["username"]
 
-    @AsyncLogging()
+    @Logging()
     @JWTAuth("login")
     @get("/users/profile/async", response_class=PlainTextResponse)
     async def get_profile_async(self, token: JWT) -> str:
         return token.payload["username"]
 
-    @AsyncLogging()
+    @Logging()
     @JWTAuth("login")
     @get("/users/profile", response_class=PlainTextResponse)
     def get_profile(self, token: JWT) -> str:
