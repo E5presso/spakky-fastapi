@@ -25,14 +25,14 @@ class AuthenticationFailedError(SpakkyAOPError):
     message = "사용자 인증에 실패했습니다."
 
 
-IAuthenticatedFunction: TypeAlias = (
+IAuthenticateFunction: TypeAlias = (
     Callable[Concatenate[Any, JWT, P], R_co]
     | Callable[Concatenate[Any, JWT, P], Awaitable[R_co]]
 )
 
 
 @dataclass
-class Auth(FunctionAnnotation):
+class Authenticate(FunctionAnnotation):
     token_url: InitVar[str]
     authenticator: OAuth2PasswordBearer = field(init=False)
     token_keywords: list[str] = field(init=False, default_factory=list)
@@ -41,8 +41,8 @@ class Auth(FunctionAnnotation):
         self.authenticator = OAuth2PasswordBearer(tokenUrl=token_url)
 
     def __call__(
-        self, obj: IAuthenticatedFunction[P, R_co]
-    ) -> IAuthenticatedFunction[P, R_co]:
+        self, obj: IAuthenticateFunction[P, R_co]
+    ) -> IAuthenticateFunction[P, R_co]:
         for key, value in obj.__annotations__.items():
             if value == JWT:
                 obj.__annotations__[key] = Annotated[JWT, Depends(self.authenticator)]
@@ -61,9 +61,9 @@ class AuthenticationAdvisor(IAdvisor):
         self.__logger = logger
         self.__key = key
 
-    @Around(lambda x: Auth.contains(x) and not iscoroutinefunction(x))
+    @Around(lambda x: Authenticate.contains(x) and not iscoroutinefunction(x))
     def around(self, joinpoint: Func, *args: Any, **kwargs: Any) -> Any:
-        annotation: Auth = Auth.single(joinpoint)
+        annotation: Authenticate = Authenticate.single(joinpoint)
         for keyword in annotation.token_keywords:
             token: str = kwargs[keyword]
             try:
@@ -90,9 +90,9 @@ class AsyncAuthenticationAdvisor(IAsyncAdvisor):
         self.__logger = logger
         self.__key = key
 
-    @Around(lambda x: Auth.contains(x) and iscoroutinefunction(x))
+    @Around(lambda x: Authenticate.contains(x) and iscoroutinefunction(x))
     async def around_async(self, joinpoint: AsyncFunc, *args: Any, **kwargs: Any) -> Any:
-        annotation: Auth = Auth.single(joinpoint)
+        annotation: Authenticate = Authenticate.single(joinpoint)
         for keyword in annotation.token_keywords:
             token: str = kwargs[keyword]
             try:

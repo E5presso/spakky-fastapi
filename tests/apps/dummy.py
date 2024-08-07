@@ -9,7 +9,7 @@ from spakky.cryptography.key import Key
 from spakky.extensions.logging import Logging
 from spakky.stereotype.usecase import UseCase
 
-from spakky_fastapi.extensions.auth import Auth
+from spakky_fastapi.extensions.authenticate import Authenticate
 from spakky_fastapi.stereotypes.api_controller import (
     ApiController,
     delete,
@@ -110,20 +110,20 @@ class DummyController:
         )
 
     @Logging()
-    @Auth("login")
+    @Authenticate("login")
     @get("/users/me", response_class=PlainTextResponse)
     async def get_user(self, token: JWT, request: Dummy = Depends()) -> str:
         print(request)
         return token.payload["username"]
 
     @Logging()
-    @Auth("login")
+    @Authenticate("login")
     @get("/users/profile/async", response_class=PlainTextResponse)
     async def get_profile_async(self, token: JWT) -> str:
         return token.payload["username"]
 
     @Logging()
-    @Auth("login")
+    @Authenticate("login")
     @get("/users/profile", response_class=PlainTextResponse)
     def get_profile(self, token: JWT) -> str:
         return token.payload["username"]
