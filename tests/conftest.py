@@ -11,8 +11,8 @@ from spakky.plugins.aspect import AspectPlugin
 from spakky.plugins.logging import LoggingPlugin
 
 from spakky_fastapi.middlewares.error_handling import ErrorHandlingMiddleware
+from spakky_fastapi.plugins.authenticate import AuthenticatePlugin
 from spakky_fastapi.plugins.fast_api import FastAPIPlugin
-from spakky_fastapi.plugins.jwt_auth import JWTAuthPlugin
 from tests import apps
 
 
@@ -53,7 +53,7 @@ def get_app_fixture(key: Key, logger: Logger) -> Generator[FastAPI, Any, None]:
     context.register_plugin(AspectPlugin(logger))
     context.register_plugin(FastAPIPlugin(app, logger))
     context.register_plugin(LoggingPlugin())
-    context.register_plugin(JWTAuthPlugin())
+    context.register_plugin(AuthenticatePlugin())
 
     context.register_bean_factory(get_logger)
     context.register_bean_factory(get_key)

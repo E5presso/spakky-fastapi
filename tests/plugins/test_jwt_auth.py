@@ -1,16 +1,16 @@
 from spakky.application.application_context import ApplicationContext
 from spakky.application.interfaces.pluggable import IPluggable
 
-from spakky_fastapi.extensions.auth import (
+from spakky_fastapi.extensions.authenticate import (
     AsyncAuthenticationAdvisor,
     AuthenticationAdvisor,
 )
-from spakky_fastapi.plugins.jwt_auth import JWTAuthPlugin
+from spakky_fastapi.plugins.authenticate import AuthenticatePlugin
 
 
 def test_jwt_auth_plugin_register() -> None:
     context: ApplicationContext = ApplicationContext()
-    plugin: IPluggable = JWTAuthPlugin()
+    plugin: IPluggable = AuthenticatePlugin()
     plugin.register(context)
 
     assert context.beans == {AuthenticationAdvisor, AsyncAuthenticationAdvisor}
