@@ -32,7 +32,7 @@ IAuthenticatedFunction: TypeAlias = (
 
 
 @dataclass
-class JWTAuth(FunctionAnnotation):
+class Auth(FunctionAnnotation):
     token_url: InitVar[str]
     authenticator: OAuth2PasswordBearer = field(init=False)
     token_keywords: list[str] = field(init=False, default_factory=list)
@@ -52,7 +52,7 @@ class JWTAuth(FunctionAnnotation):
 
 @Order(1)
 @Aspect()
-class JWTAuthAdvisor(IAdvisor):
+class AuthenticationAdvisor(IAdvisor):
     __logger: Logger
     __key: Key
 
@@ -61,9 +61,9 @@ class JWTAuthAdvisor(IAdvisor):
         self.__logger = logger
         self.__key = key
 
-    @Around(lambda x: JWTAuth.contains(x) and not iscoroutinefunction(x))
+    @Around(lambda x: Auth.contains(x) and not iscoroutinefunction(x))
     def around(self, joinpoint: Func, *args: Any, **kwargs: Any) -> Any:
-        annotation: JWTAuth = JWTAuth.single(joinpoint)
+        annotation: Auth = Auth.single(joinpoint)
         for keyword in annotation.token_keywords:
             token: str = kwargs[keyword]
             try:
@@ -81,7 +81,7 @@ class JWTAuthAdvisor(IAdvisor):
 
 @Order(1)
 @AsyncAspect()
-class AsyncJWTAuthAdvisor(IAsyncAdvisor):
+class AsyncAuthenticationAdvisor(IAsyncAdvisor):
     __logger: Logger
     __key: Key
 
@@ -90,9 +90,9 @@ class AsyncJWTAuthAdvisor(IAsyncAdvisor):
         self.__logger = logger
         self.__key = key
 
-    @Around(lambda x: JWTAuth.contains(x) and iscoroutinefunction(x))
+    @Around(lambda x: Auth.contains(x) and iscoroutinefunction(x))
     async def around_async(self, joinpoint: AsyncFunc, *args: Any, **kwargs: Any) -> Any:
-        annotation: JWTAuth = JWTAuth.single(joinpoint)
+        annotation: Auth = Auth.single(joinpoint)
         for keyword in annotation.token_keywords:
             token: str = kwargs[keyword]
             try:
