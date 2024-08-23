@@ -57,9 +57,9 @@ class FastAPIBeanPostProcessor(IPodPostProcessor):
                 router.add_api_route(endpoint=method, **asdict(route))
             if websocket_route is not None:
                 # pylint: disable=line-too-long
-                # self.__logger.info(
-                #     f"[{type(self).__name__}] [WebSocket] {controller.prefix}{websocket_route.path} -> {method.__qualname__}"
-                # )
+                self.__logger.info(
+                    f"[{type(self).__name__}] [WebSocket] {controller.prefix}{websocket_route.path} -> {method.__qualname__}"
+                )
                 if websocket_route.name is None:
                     websocket_route.name = " ".join(
                         [x.capitalize() for x in name.split("_")]
