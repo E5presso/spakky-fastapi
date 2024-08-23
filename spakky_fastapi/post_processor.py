@@ -31,7 +31,6 @@ class FastAPIBeanPostProcessor(IPodPostProcessor):
             return pod
         controller = ApiController.get(pod)
         router: APIRouter = APIRouter(prefix=controller.prefix, tags=controller.tags)
-        print(f"CONTROLLER {type(pod).__name__}")
         for name, method in getmembers(pod, callable):
             route: Route | None = Route.get_or_none(method)
             websocket_route: WebSocketRoute | None = WebSocketRoute.get_or_none(method)
