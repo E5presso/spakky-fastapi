@@ -6,15 +6,14 @@ from dataclasses import InitVar, field, dataclass
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 from spakky.aop.advice import Around
-from spakky.aop.advisor import IAdvisor, IAsyncAdvisor
-from spakky.aop.aspect import Aspect, AsyncAspect
+from spakky.aop.aspect import Aspect, AsyncAspect, IAspect, IAsyncAspect
 from spakky.aop.error import SpakkyAOPError
-from spakky.aop.order import Order
 from spakky.core.annotation import FunctionAnnotation
 from spakky.core.types import AsyncFunc, Func, P
-from spakky.cryptography.error import InvalidJWTFormatError, JWTDecodingError
-from spakky.cryptography.jwt import JWT
-from spakky.cryptography.key import Key
+from spakky.pod.order import Order
+from spakky.security.error import InvalidJWTFormatError, JWTDecodingError
+from spakky.security.jwt import JWT
+from spakky.security.key import Key
 
 from spakky_fastapi.error import Unauthorized
 
@@ -52,7 +51,7 @@ class Authenticate(FunctionAnnotation):
 
 @Order(1)
 @Aspect()
-class AuthenticationAdvisor(IAdvisor):
+class AuthenticationAspect(IAspect):
     __logger: Logger
     __key: Key
 
@@ -61,9 +60,9 @@ class AuthenticationAdvisor(IAdvisor):
         self.__logger = logger
         self.__key = key
 
-    @Around(lambda x: Authenticate.contains(x) and not iscoroutinefunction(x))
+    @Around(lambda x: Authenticate.exists(x) and not iscoroutinefunction(x))
     def around(self, joinpoint: Func, *args: Any, **kwargs: Any) -> Any:
-        annotation: Authenticate = Authenticate.single(joinpoint)
+        annotation: Authenticate = Authenticate.get(joinpoint)
         for keyword in annotation.token_keywords:
             token: str = kwargs[keyword]
             try:
@@ -81,7 +80,7 @@ class AuthenticationAdvisor(IAdvisor):
 
 @Order(1)
 @AsyncAspect()
-class AsyncAuthenticationAdvisor(IAsyncAdvisor):
+class AsyncAuthenticationAspect(IAsyncAspect):
     __logger: Logger
     __key: Key
 
@@ -90,9 +89,9 @@ class AsyncAuthenticationAdvisor(IAsyncAdvisor):
         self.__logger = logger
         self.__key = key
 
-    @Around(lambda x: Authenticate.contains(x) and iscoroutinefunction(x))
+    @Around(lambda x: Authenticate.exists(x) and iscoroutinefunction(x))
     async def around_async(self, joinpoint: AsyncFunc, *args: Any, **kwargs: Any) -> Any:
-        annotation: Authenticate = Authenticate.single(joinpoint)
+        annotation: Authenticate = Authenticate.get(joinpoint)
         for keyword in annotation.token_keywords:
             token: str = kwargs[keyword]
             try:

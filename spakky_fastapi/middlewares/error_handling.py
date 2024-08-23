@@ -1,3 +1,4 @@
+import traceback
 from typing import Callable, Awaitable, TypeAlias
 
 from fastapi import Request
@@ -43,6 +44,8 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
             )
         # pylint: disable=broad-exception-caught
         except Exception as e:
+            if self.__debug:
+                traceback.print_exc()  # pragma: no cover
             error = InternalServerError(e)
             return ORJSONResponse(
                 content=ErrorResponse(

@@ -1,13 +1,13 @@
 from spakky.application.interfaces.pluggable import IPluggable
-from spakky.application.interfaces.registry import IRegistry
+from spakky.application.interfaces.registry import IPodRegistry
 
-from spakky_fastapi.extensions.authenticate import (
-    AsyncAuthenticationAdvisor,
-    AuthenticationAdvisor,
+from spakky_fastapi.aspects.authenticate import (
+    AsyncAuthenticationAspect,
+    AuthenticationAspect,
 )
 
 
 class AuthenticatePlugin(IPluggable):
-    def register(self, registry: IRegistry) -> None:
-        registry.register_bean(AuthenticationAdvisor)
-        registry.register_bean(AsyncAuthenticationAdvisor)
+    def register(self, registry: IPodRegistry) -> None:
+        registry.register(AuthenticationAspect)
+        registry.register(AsyncAuthenticationAspect)

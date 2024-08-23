@@ -4,8 +4,8 @@ from datetime import timedelta
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from spakky.cryptography.jwt import JWT
-from spakky.cryptography.key import Key
+from spakky.security.jwt import JWT
+from spakky.security.key import Key
 
 
 def test_get(app: FastAPI) -> None:

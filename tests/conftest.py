@@ -5,10 +5,10 @@ from logging import Logger, Formatter, StreamHandler, getLogger
 import pytest
 from fastapi import FastAPI
 from spakky.application.application_context import ApplicationContext
-from spakky.bean.bean import Bean
-from spakky.cryptography.key import Key
 from spakky.plugins.aspect import AspectPlugin
 from spakky.plugins.logging import LoggingPlugin
+from spakky.pod.pod import Pod
+from spakky.security.key import Key
 
 from spakky_fastapi.middlewares.error_handling import ErrorHandlingMiddleware
 from spakky_fastapi.plugins.authenticate import AuthenticatePlugin
@@ -38,11 +38,11 @@ def get_logger_fixture() -> Generator[Logger, Any, None]:
 
 @pytest.fixture(name="app", scope="function")
 def get_app_fixture(key: Key, logger: Logger) -> Generator[FastAPI, Any, None]:
-    @Bean(bean_name="logger")
+    @Pod(name="logger")
     def get_logger() -> Logger:
         return logger
 
-    @Bean(bean_name="key")
+    @Pod(name="key")
     def get_key() -> Key:
         return key
 
@@ -50,13 +50,13 @@ def get_app_fixture(key: Key, logger: Logger) -> Generator[FastAPI, Any, None]:
     app.add_middleware(ErrorHandlingMiddleware, debug=True)
     context: ApplicationContext = ApplicationContext(package=apps)
 
-    context.register_plugin(AspectPlugin(logger))
-    context.register_plugin(FastAPIPlugin(app, logger))
     context.register_plugin(LoggingPlugin())
     context.register_plugin(AuthenticatePlugin())
+    context.register_plugin(FastAPIPlugin(app, logger))
+    context.register_plugin(AspectPlugin(logger))
 
-    context.register_bean_factory(get_logger)
-    context.register_bean_factory(get_key)
+    context.register(get_logger)
+    context.register(get_key)
 
     context.start()
     yield app
