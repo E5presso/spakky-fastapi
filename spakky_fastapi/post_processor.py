@@ -1,4 +1,3 @@
-from typing import Any
 from inspect import signature, getmembers
 from logging import Logger
 from dataclasses import asdict
@@ -6,8 +5,9 @@ from dataclasses import asdict
 from fastapi import APIRouter, FastAPI
 from fastapi.exceptions import FastAPIError
 from fastapi.utils import create_response_field  # type: ignore
-from spakky.application.interfaces.bean_container import IBeanContainer
-from spakky.application.interfaces.bean_processor import IBeanPostProcessor
+from spakky.application.interfaces.container import IPodContainer
+from spakky.application.interfaces.post_processor import IPodPostProcessor
+from spakky.pod.order import Order
 
 from spakky_fastapi.stereotypes.api_controller import (
     ApiController,
@@ -16,7 +16,8 @@ from spakky_fastapi.stereotypes.api_controller import (
 )
 
 
-class FastAPIBeanPostProcessor(IBeanPostProcessor):
+@Order(1)
+class FastAPIBeanPostProcessor(IPodPostProcessor):
     __app: FastAPI
     __logger: Logger
 
@@ -25,14 +26,15 @@ class FastAPIBeanPostProcessor(IBeanPostProcessor):
         self.__app = app
         self.__logger = logger
 
-    def post_process_bean(self, container: IBeanContainer, bean: Any) -> Any:
-        if not ApiController.contains(bean):
-            return bean
-        controller = ApiController.single(bean)
+    def post_process(self, container: IPodContainer, pod: object) -> object:
+        if not ApiController.exists(pod):
+            return pod
+        controller = ApiController.get(pod)
         router: APIRouter = APIRouter(prefix=controller.prefix, tags=controller.tags)
-        for name, method in getmembers(bean, callable):
-            route: Route | None = Route.single_or_none(method)
-            websocket_route: WebSocketRoute | None = WebSocketRoute.single_or_none(method)
+        print(f"CONTROLLER {type(pod).__name__}")
+        for name, method in getmembers(pod, callable):
+            route: Route | None = Route.get_or_none(method)
+            websocket_route: WebSocketRoute | None = WebSocketRoute.get_or_none(method)
             if route is None and websocket_route is None:
                 continue
             if route is not None:
@@ -56,13 +58,13 @@ class FastAPIBeanPostProcessor(IBeanPostProcessor):
                 router.add_api_route(endpoint=method, **asdict(route))
             if websocket_route is not None:
                 # pylint: disable=line-too-long
-                self.__logger.info(
-                    f"[{type(self).__name__}] [WebSocket] {controller.prefix}{websocket_route.path} -> {method.__qualname__}"
-                )
+                # self.__logger.info(
+                #     f"[{type(self).__name__}] [WebSocket] {controller.prefix}{websocket_route.path} -> {method.__qualname__}"
+                # )
                 if websocket_route.name is None:
                     websocket_route.name = " ".join(
                         [x.capitalize() for x in name.split("_")]
                     )
                 router.add_api_websocket_route(endpoint=method, **asdict(websocket_route))
         self.__app.include_router(router)
-        return bean
+        return pod

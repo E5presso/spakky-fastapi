@@ -1,15 +1,15 @@
 from uuid import UUID
 from datetime import timedelta
 
-from fastapi import Depends, WebSocket
+from fastapi import WebSocket
 from fastapi.responses import FileResponse, PlainTextResponse
 from pydantic import BaseModel
-from spakky.cryptography.jwt import JWT
-from spakky.cryptography.key import Key
-from spakky.extensions.logging import Logging
+from spakky.aspects.logging import Logging
+from spakky.security.jwt import JWT
+from spakky.security.key import Key
 from spakky.stereotype.usecase import UseCase
 
-from spakky_fastapi.extensions.authenticate import Authenticate
+from spakky_fastapi.aspects.authenticate import Authenticate
 from spakky_fastapi.stereotypes.api_controller import (
     ApiController,
     delete,
@@ -112,8 +112,7 @@ class DummyController:
     @Logging()
     @Authenticate("login")
     @get("/users/me", response_class=PlainTextResponse)
-    async def get_user(self, token: JWT, request: Dummy = Depends()) -> str:
-        print(request)
+    async def get_user(self, token: JWT) -> str:
         return token.payload["username"]
 
     @Logging()
