@@ -5,9 +5,9 @@ from dataclasses import InitVar, field, dataclass
 
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
-from spakky.aop.advice import Around
 from spakky.aop.aspect import Aspect, AsyncAspect, IAspect, IAsyncAspect
 from spakky.aop.error import SpakkyAOPError
+from spakky.aop.pointcut import Around
 from spakky.core.annotation import FunctionAnnotation
 from spakky.core.types import AsyncFunc, Func, P
 from spakky.pod.order import Order
