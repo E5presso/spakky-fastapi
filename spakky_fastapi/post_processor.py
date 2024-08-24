@@ -17,7 +17,7 @@ from spakky_fastapi.stereotypes.api_controller import (
 
 
 @Order(1)
-class FastAPIBeanPostProcessor(IPodPostProcessor):
+class FastAPIPostProcessor(IPodPostProcessor):
     __app: FastAPI
     __logger: Logger
 

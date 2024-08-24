@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from spakky.application.interfaces.pluggable import IPluggable
 from spakky.application.interfaces.registry import IPodRegistry
 
-from spakky_fastapi.post_processor import FastAPIBeanPostProcessor
+from spakky_fastapi.post_processor import FastAPIPostProcessor
 
 
 class FastAPIPlugin(IPluggable):
@@ -17,7 +17,7 @@ class FastAPIPlugin(IPluggable):
 
     def register(self, registry: IPodRegistry) -> None:
         registry.register_post_processor(
-            FastAPIBeanPostProcessor(
+            FastAPIPostProcessor(
                 self.app,
                 self.logger,
             )

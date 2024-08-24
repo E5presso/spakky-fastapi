@@ -5,7 +5,7 @@ from spakky.application.application_context import ApplicationContext
 from spakky.application.interfaces.pluggable import IPluggable
 
 from spakky_fastapi.plugins.fast_api import FastAPIPlugin
-from spakky_fastapi.post_processor import FastAPIBeanPostProcessor
+from spakky_fastapi.post_processor import FastAPIPostProcessor
 
 
 def test_fast_api_plugin_register(logger: Logger) -> None:
@@ -14,4 +14,4 @@ def test_fast_api_plugin_register(logger: Logger) -> None:
     plugin: IPluggable = FastAPIPlugin(app, logger)
     plugin.register(context)
 
-    assert context.post_processors == {FastAPIBeanPostProcessor}
+    assert context.post_processors == {FastAPIPostProcessor}
