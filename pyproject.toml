@@ -37,7 +37,7 @@ target-version = ["py312"]
 include = '\.pyi?$'
 
 [tool.isort]
-py_version = 311
+py_version = 310
 src_paths = ["spakky_fastapi", "tests"]
 skip = [".venv", ".gitignore", ".dockerignore"]
 extend_skip = [".md", ".json", ".txt"]
