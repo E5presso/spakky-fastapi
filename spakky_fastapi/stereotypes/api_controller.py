@@ -503,6 +503,6 @@ def websocket(
     )
 
 
-@dataclass
+@dataclass(eq=False)
 class ApiController(Controller):
     tags: list[str | Enum] | None = None
