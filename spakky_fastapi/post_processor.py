@@ -4,7 +4,7 @@ from dataclasses import asdict
 
 from fastapi import APIRouter, FastAPI
 from fastapi.exceptions import FastAPIError
-from fastapi.utils import create_response_field  # type: ignore
+from fastapi.utils import create_model_field  # type: ignore
 from spakky.application.interfaces.container import IPodContainer
 from spakky.application.interfaces.post_processor import IPodPostProcessor
 from spakky.pod.order import Order
@@ -49,7 +49,7 @@ class FastAPIPostProcessor(IPodPostProcessor):
                     return_annotation: type | None = signature(method).return_annotation
                     if return_annotation is not None:
                         try:
-                            create_response_field("", return_annotation)
+                            create_model_field("", return_annotation)
                         except FastAPIError:
                             pass
                         else:
