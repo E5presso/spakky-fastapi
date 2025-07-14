@@ -22,7 +22,5 @@ class ManageContextMiddleware(BaseHTTPMiddleware):
         self.__application_context = application_context
 
     async def dispatch(self, request: Request, call_next: Next) -> Response:
-        try:
-            return await call_next(request)
-        finally:
-            self.__application_context.clear_context()
+        self.__application_context.clear_context()
+        return await call_next(request)

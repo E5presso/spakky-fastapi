@@ -15,7 +15,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.dependencies]
 python = ">=3.10"
 fastapi = "^0.115.5"
-spakky-core = ">=2.8"
+spakky-core = ">=2.10"
 websockets = "^14.1"
 orjson = "^3.10.11"
 
