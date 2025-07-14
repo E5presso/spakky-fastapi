@@ -9,11 +9,9 @@ from fastapi.exceptions import FastAPIError
 from fastapi.utils import create_model_field  # type: ignore
 from spakky.pod.annotations.order import Order
 from spakky.pod.annotations.pod import Pod
-from spakky.pod.interfaces.application_context import IApplicationContext
-from spakky.pod.interfaces.aware.application_context_aware import (
-    IApplicationContextAware,
-)
+from spakky.pod.interfaces.aware.container_aware import IContainerAware
 from spakky.pod.interfaces.aware.logger_aware import ILoggerAware
+from spakky.pod.interfaces.container import IContainer
 from spakky.pod.interfaces.post_processor import IPostProcessor
 
 from spakky_fastapi.routes.route import Route
@@ -23,23 +21,21 @@ from spakky_fastapi.stereotypes.api_controller import ApiController
 
 @Order(0)
 @Pod()
-class RegisterRoutesPostProcessor(
-    IPostProcessor, ILoggerAware, IApplicationContextAware
-):
+class RegisterRoutesPostProcessor(IPostProcessor, ILoggerAware, IContainerAware):
     __logger: Logger
-    __application_context: IApplicationContext
+    __container: IContainer
 
     def set_logger(self, logger: Logger) -> None:
         self.__logger = logger
 
-    def set_application_context(self, application_context: IApplicationContext) -> None:
-        self.__application_context = application_context
+    def set_container(self, container: IContainer) -> None:
+        self.__container = container
 
     def post_process(self, pod: object) -> object:
         if not ApiController.exists(pod):
             return pod
 
-        fast_api = self.__application_context.get(FastAPI)
+        fast_api = self.__container.get(FastAPI)
         controller = ApiController.get(pod)
         router: APIRouter = APIRouter(prefix=controller.prefix, tags=controller.tags)
         for name, method in getmembers(pod, callable):
@@ -71,7 +67,7 @@ class RegisterRoutesPostProcessor(
                     *args: Any,
                     method_name: str = name,
                     controller_type: type[object] = controller.type_,
-                    context: IApplicationContext = self.__application_context,
+                    context: IContainer = self.__container,
                     **kwargs: Any,
                 ) -> Any:
                     controller_instance = context.get(controller_type)
@@ -94,7 +90,7 @@ class RegisterRoutesPostProcessor(
                     *args: Any,
                     method_name: str = name,
                     controller_type: type[object] = controller.type_,
-                    context: IApplicationContext = self.__application_context,
+                    context: IContainer = self.__container,
                     **kwargs: Any,
                 ) -> Any:
                     controller_instance = context.get(controller_type)
