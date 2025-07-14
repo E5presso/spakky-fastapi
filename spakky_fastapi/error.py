@@ -1,65 +1,54 @@
+import traceback
+from abc import ABC
 from typing import ClassVar
 
 from fastapi import status
-from fastapi.responses import ORJSONResponse
-from spakky.core.error import SpakkyCoreError
+from fastapi.responses import JSONResponse, ORJSONResponse
+from spakky.core.error import AbstractSpakkyCoreError
 
 
-class SpakkyFastAPIError(SpakkyCoreError):
+class AbstractSpakkyFastAPIError(AbstractSpakkyCoreError, ABC):
     status_code: ClassVar[int]
 
-    def __init__(self, error: SpakkyCoreError) -> None:
-        self.message = error.message
-        self.args = error.args
+    def __init__(self, *args: object) -> None:
+        super().__init__(*args)
 
-    def to_response(self) -> ORJSONResponse:
+    def to_response(self, show_traceback: bool) -> JSONResponse:
         return ORJSONResponse(
             content={
                 "message": self.message,
                 "args": [str(x) for x in self.args],
+                "traceback": traceback.format_exc() if show_traceback else None,
             },
             status_code=self.status_code,
         )
 
 
-class SpakkyUnknownError(SpakkyCoreError):
-    message = "알 수 없는 오류가 발생했습니다."
-
-
-class BadRequest(SpakkyFastAPIError):
+class BadRequest(AbstractSpakkyFastAPIError):
+    message: ClassVar[str] = "Bad Request"
     status_code: ClassVar[int] = status.HTTP_400_BAD_REQUEST
 
 
-class Unauthorized(SpakkyFastAPIError):
+class Unauthorized(AbstractSpakkyFastAPIError):
+    message: ClassVar[str] = "Unauthorized"
     status_code: ClassVar[int] = status.HTTP_401_UNAUTHORIZED
 
 
-class Forbidden(SpakkyFastAPIError):
+class Forbidden(AbstractSpakkyFastAPIError):
+    message: ClassVar[str] = "Forbidden"
     status_code: ClassVar[int] = status.HTTP_403_FORBIDDEN
 
 
-class NotFound(SpakkyFastAPIError):
+class NotFound(AbstractSpakkyFastAPIError):
+    message: ClassVar[str] = "Not Found"
     status_code: ClassVar[int] = status.HTTP_404_NOT_FOUND
 
 
-class Conflict(SpakkyFastAPIError):
+class Conflict(AbstractSpakkyFastAPIError):
+    message: ClassVar[str] = "Conflict"
     status_code: ClassVar[int] = status.HTTP_409_CONFLICT
 
 
-class InternalServerError(SpakkyFastAPIError):
+class InternalServerError(AbstractSpakkyFastAPIError):
+    message: ClassVar[str] = "Internal Server Error"
     status_code: ClassVar[int] = status.HTTP_500_INTERNAL_SERVER_ERROR
-    stacktrace: str | None
-
-    def __init__(self, error: Exception, stacktrace: str | None) -> None:
-        super().__init__(SpakkyUnknownError(error.args))
-        self.stacktrace = stacktrace
-
-    def to_response(self) -> ORJSONResponse:
-        return ORJSONResponse(
-            content={
-                "message": self.message,
-                "args": [str(x) for x in self.args],
-                "stacktrace": self.stacktrace,
-            },
-            status_code=self.status_code,
-        )

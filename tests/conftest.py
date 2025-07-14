@@ -1,18 +1,14 @@
 import logging
-from typing import Any, Generator
-from logging import Logger, Formatter, StreamHandler, getLogger
+from logging import Formatter, StreamHandler, getLogger
+from typing import Any, AsyncGenerator, Generator
 
 import pytest
 from fastapi import FastAPI
+from spakky.application.application import SpakkyApplication
 from spakky.application.application_context import ApplicationContext
-from spakky.plugins.aspect import AspectPlugin
-from spakky.plugins.logging import LoggingPlugin
-from spakky.pod.pod import Pod
+from spakky.pod.annotations.pod import Pod
 from spakky.security.key import Key
 
-from spakky_fastapi.middlewares.error_handling import ErrorHandlingMiddleware
-from spakky_fastapi.plugins.authenticate import AuthenticatePlugin
-from spakky_fastapi.plugins.fast_api import FastAPIPlugin
 from tests import apps
 
 
@@ -22,41 +18,36 @@ def get_key_fixture() -> Generator[Key, Any, None]:
     yield key
 
 
-@pytest.fixture(name="logger", scope="session")
-def get_logger_fixture() -> Generator[Logger, Any, None]:
-    logger: Logger = getLogger("debug")
+@pytest.mark.asyncio
+@pytest.fixture(name="app", scope="function")
+async def get_app_fixture(key: Key) -> AsyncGenerator[FastAPI, Any]:
+    logger = getLogger("debug")
     logger.setLevel(logging.DEBUG)
     console = StreamHandler()
     console.setLevel(level=logging.DEBUG)
-    console.setFormatter(Formatter("[%(levelname)s] (%(asctime)s) : %(message)s"))
+    console.setFormatter(Formatter("[%(levelname)s][%(asctime)s]: %(message)s"))
     logger.addHandler(console)
-
-    yield logger
-
-    logger.removeHandler(console)
-
-
-@pytest.fixture(name="app", scope="function")
-def get_app_fixture(key: Key, logger: Logger) -> Generator[FastAPI, Any, None]:
-    @Pod(name="logger")
-    def get_logger() -> Logger:
-        return logger
 
     @Pod(name="key")
     def get_key() -> Key:
         return key
 
-    app: FastAPI = FastAPI(debug=True)
-    app.add_middleware(ErrorHandlingMiddleware, debug=True)
-    context: ApplicationContext = ApplicationContext(package=apps)
+    @Pod(name="api")
+    def get_api() -> FastAPI:
+        return FastAPI(debug=True)
 
-    context.register_plugin(LoggingPlugin())
-    context.register_plugin(AuthenticatePlugin())
-    context.register_plugin(FastAPIPlugin(app, logger))
-    context.register_plugin(AspectPlugin(logger))
+    app = (
+        SpakkyApplication(ApplicationContext(logger))
+        .load_plugins()
+        .enable_async_logging()
+        .enable_logging()
+        .scan(apps)
+        .add(get_key)
+        .add(get_api)
+    )
+    app.start()
 
-    context.register(get_logger)
-    context.register(get_key)
+    yield app.container.get(type_=FastAPI)
 
-    context.start()
-    yield app
+    app.stop()
+    logger.removeHandler(console)
