@@ -42,7 +42,7 @@ builtins = ["_"]
 cache-dir = "~/.cache/ruff"
 
 [tool.pytest.ini_options]
-pythonpath = "spakky"
+pythonpath = "spakky_fastapi"
 testpaths = "tests"
 python_files = ["test_*.py"]
 asyncio_mode = "auto"
