@@ -1,5 +1,5 @@
-from uuid import UUID
 from datetime import timedelta
+from uuid import UUID
 
 from fastapi import WebSocket
 from fastapi.responses import FileResponse, PlainTextResponse
@@ -9,9 +9,8 @@ from spakky.security.jwt import JWT
 from spakky.security.key import Key
 from spakky.stereotype.usecase import UseCase
 
-from spakky_fastapi.aspects.authenticate import Authenticate
-from spakky_fastapi.stereotypes.api_controller import (
-    ApiController,
+from spakky_fastapi.error import BadRequest
+from spakky_fastapi.routes import (
     delete,
     get,
     head,
@@ -21,6 +20,7 @@ from spakky_fastapi.stereotypes.api_controller import (
     put,
     websocket,
 )
+from spakky_fastapi.stereotypes.api_controller import ApiController
 
 
 class Dummy(BaseModel):
@@ -30,9 +30,9 @@ class Dummy(BaseModel):
 
 @ApiController("/dummy")
 class DummyController:
-    __key: Key
+    __key: Key | None
 
-    def __init__(self, key: Key) -> None:
+    def __init__(self, key: Key | None = None) -> None:
         self.__key = key
 
     async def just_function(self) -> str:
@@ -82,8 +82,7 @@ class DummyController:
 
     @Logging()
     @head("", response_class=PlainTextResponse)
-    async def head_dummy(self) -> None:
-        ...
+    async def head_dummy(self) -> None: ...
 
     @Logging()
     @options("", response_class=PlainTextResponse)
@@ -101,6 +100,8 @@ class DummyController:
     @Logging()
     @get("/login")
     async def login(self, username: str) -> str:
+        if self.__key is None:
+            return "No key!"
         return (
             JWT()
             .set_expiration(timedelta(days=30))
@@ -110,28 +111,19 @@ class DummyController:
         )
 
     @Logging()
-    @Authenticate("login")
-    @get("/users/me", response_class=PlainTextResponse)
-    async def get_user(self, token: JWT) -> str:
-        return token.payload["username"]
+    @get("/verify-email")
+    async def verify_email(self, email: str) -> None:
+        if "@" not in email:
+            raise BadRequest("Invalid email")
 
     @Logging()
-    @Authenticate("login")
-    @get("/users/profile/async", response_class=PlainTextResponse)
-    async def get_profile_async(self, token: JWT) -> str:
-        return token.payload["username"]
-
-    @Logging()
-    @Authenticate("login")
-    @get("/users/profile", response_class=PlainTextResponse)
-    def get_profile(self, token: JWT) -> str:
-        return token.payload["username"]
-
-    @get("/error", response_class=PlainTextResponse)
-    async def raise_error(self) -> str:
-        raise RuntimeError("Error!")
+    @get("/error")
+    async def raise_error(self) -> None:
+        raise ValueError("Error!")
 
 
 @UseCase()
 class DummyUseCase:
-    ...
+    @get("/error", response_class=PlainTextResponse)
+    async def raise_error(self) -> str:
+        raise RuntimeError("Error!")
