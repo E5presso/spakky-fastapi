@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "spakky-fastapi"
-version = "2.0.2"
+version = "2.0.3"
 description = "Highly abstracted Framework core to use DDD & DI/IoC & AOP & Etc..."
 authors = ["Spakky <sejong418@icloud.com>"]
 readme = "README.md"
@@ -14,7 +14,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.dependencies]
 python = ">=3.10"
-fastapi = "^0.115.5"
+fastapi = { extras = ["standard"], version = "^0.116.1" }
 spakky-core = ">=2.10"
 websockets = "^14.1"
 orjson = "^3.10.11"
