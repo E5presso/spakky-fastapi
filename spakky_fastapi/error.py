@@ -10,8 +10,10 @@ from spakky.core.error import AbstractSpakkyCoreError
 class AbstractSpakkyFastAPIError(AbstractSpakkyCoreError, ABC):
     status_code: ClassVar[int]
 
-    def __init__(self, *args: object) -> None:
+    def __init__(self, message: str | None = None, *args: object) -> None:
         super().__init__(*args)
+        if message is not None:
+            self.message = message
 
     def to_response(self, show_traceback: bool) -> JSONResponse:
         return ORJSONResponse(
@@ -25,30 +27,30 @@ class AbstractSpakkyFastAPIError(AbstractSpakkyCoreError, ABC):
 
 
 class BadRequest(AbstractSpakkyFastAPIError):
-    message: ClassVar[str] = "Bad Request"
+    message: str = "Bad Request"
     status_code: ClassVar[int] = status.HTTP_400_BAD_REQUEST
 
 
 class Unauthorized(AbstractSpakkyFastAPIError):
-    message: ClassVar[str] = "Unauthorized"
+    message: str = "Unauthorized"
     status_code: ClassVar[int] = status.HTTP_401_UNAUTHORIZED
 
 
 class Forbidden(AbstractSpakkyFastAPIError):
-    message: ClassVar[str] = "Forbidden"
+    message: str = "Forbidden"
     status_code: ClassVar[int] = status.HTTP_403_FORBIDDEN
 
 
 class NotFound(AbstractSpakkyFastAPIError):
-    message: ClassVar[str] = "Not Found"
+    message: str = "Not Found"
     status_code: ClassVar[int] = status.HTTP_404_NOT_FOUND
 
 
 class Conflict(AbstractSpakkyFastAPIError):
-    message: ClassVar[str] = "Conflict"
+    message: str = "Conflict"
     status_code: ClassVar[int] = status.HTTP_409_CONFLICT
 
 
 class InternalServerError(AbstractSpakkyFastAPIError):
-    message: ClassVar[str] = "Internal Server Error"
+    message: str = "Internal Server Error"
     status_code: ClassVar[int] = status.HTTP_500_INTERNAL_SERVER_ERROR
