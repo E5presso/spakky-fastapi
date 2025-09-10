@@ -15,7 +15,7 @@ class AbstractSpakkyFastAPIError(AbstractSpakkyCoreError, ABC):
         if message is not None:
             self.message = message
 
-    def to_response(self, show_traceback: bool) -> JSONResponse:
+    def to_response(self, show_traceback: bool = False) -> JSONResponse:
         return ORJSONResponse(
             content={
                 "message": self.message,
