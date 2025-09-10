@@ -26,6 +26,6 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
         try:
             return await call_next(request)
         except AbstractSpakkyFastAPIError as e:
-            return e.to_response(self.__debug)
+            return e.to_response()
         except Exception:
             return InternalServerError().to_response(self.__debug)
