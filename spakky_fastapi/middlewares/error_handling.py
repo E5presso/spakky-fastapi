@@ -1,3 +1,4 @@
+from traceback import print_exc
 from typing import Awaitable, Callable, TypeAlias
 
 from fastapi import Request
@@ -28,4 +29,6 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
         except AbstractSpakkyFastAPIError as e:
             return e.to_response()
         except Exception:
+            if self.__debug:
+                print_exc()
             return InternalServerError().to_response(self.__debug)
